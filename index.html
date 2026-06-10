@@ -476,8 +476,68 @@ function bConf() {
   var h='<div class="pt">\u78BA\u5B9A\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
   h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(2)"><button class="btn bo bsm" onclick="G.per.conf=1;go(2)">\u524D\u534A</button><button class="btn bs bsm" onclick="G.per.conf=2;go(2)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB</div></div>';
-  h+='<div class="pf"><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
+  h+='<div class="pf"><button class="btn bs" onclick="printConf()">\uD83D\uDDC8 \u5370\u523A\u30BFPDF</button><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
   return h;
+}
+
+/* ===== 確定シフト印刷 ===== */
+function printConf() {
+  var d=D(); if(!d) return;
+  var days=dim(G.mo), lab=calcLab(d);
+
+  function buildHalf(st,en) {
+    var hd='<tr><th style="background:#1a1a2e;color:#fff;padding:4px 6px;font-size:10px;white-space:nowrap">\u540d\u524d</th>';
+    for(var day=st;day<=en;day++){
+      var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt);
+      var col=(wd===0||hh)?'#e94560':wd===6?'#93c5fd':'#fff';
+      hd+='<th style="background:#1a1a2e;color:'+col+';padding:3px 1px;font-size:9px;min-width:28px;text-align:center"><div>'+day+'</div><div>'+DOW[wd]+'</div></th>';
+    }
+    hd+='<th style="background:#1a1a2e;color:#fff;padding:3px 4px;font-size:9px">\u6642\u9593</th><th style="background:#1a1a2e;color:#fff;padding:3px 4px;font-size:9px">\u7d66\u6599</th></tr>';
+    var rows='';
+    d.fixed.forEach(function(f){
+      var tr='<tr><td style="background:#eef0f8;color:#0f3460;font-weight:700;padding:3px 5px;font-size:9px;white-space:nowrap">'+f.name+'</td>';
+      for(var day=st;day<=en;day++){
+        var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt);
+        var bg=(wd===0||hh)?'#fef9fa':wd===6?'#f6f9ff':'#fff';
+        var c=d.confirmed&&d.confirmed[dt]&&d.confirmed[dt].filter(function(x){return x.type==='staff'&&x.name===f.name;})[0];
+        tr+='<td style="background:'+bg+';text-align:center;padding:2px 1px;font-size:8px">'+(c?'<span style="background:#1e3a5f;color:#93c5fd;border-radius:2px;padding:1px 2px">'+fTS(c.start||SDEF)+'</span>':'<span style="color:#ccc">\u2500</span>')+'</td>';
+      }
+      var daily=Math.round(f.monthly/days);
+      tr+='<td style="text-align:center;font-size:8px;color:#6b6b8a">\u65e5\u5272<br>\u00a5'+daily.toLocaleString()+'</td><td style="text-align:right;font-size:9px;font-weight:700;padding:2px 4px">\u00a5'+f.monthly.toLocaleString()+'</td></tr>';
+      rows+=tr;
+    });
+    rows+='<tr><td colspan="'+(en-st+3)+'" style="height:2px;background:#1a1a2e;padding:0"></td></tr>';
+    d.workers.forEach(function(w){
+      var wh=0,ww=0;
+      for(var day=st;day<=en;day++){var dt2=ds(G.mo,day);if(d.confirmed&&d.confirmed[dt2])d.confirmed[dt2].forEach(function(c){if(c.type==='worker'&&c.wid===w.id){wh+=hrs(c.start,c.end);ww+=wage(c.start,c.end,w.hourly);}});}
+      var tr='<tr><td style="padding:3px 5px;font-size:9px;white-space:nowrap;font-weight:700">'+w.name+'</td>';
+      for(var day=st;day<=en;day++){
+        var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt);
+        var bg=(wd===0||hh)?'#fef9fa':wd===6?'#f6f9ff':'#fff';
+        var c=d.confirmed&&d.confirmed[dt]&&d.confirmed[dt].filter(function(x){return x.type==='worker'&&x.wid===w.id;})[0];
+        var cell='<span style="color:#ccc">\u2500</span>';
+        if(c&&c.start&&c.end)cell='<span style="background:#059669;color:#fff;border-radius:2px;padding:1px 2px;font-size:7px;line-height:1.3">'+fTS(c.start)+'<br>\u301c'+fTS(c.end)+'</span>';
+        tr+='<td style="background:'+bg+';text-align:center;padding:2px 1px;font-size:8px">'+cell+'</td>';
+      }
+      tr+='<td style="text-align:center;font-size:8px;color:#0f3460;font-weight:700">'+wh.toFixed(1)+'h</td><td style="text-align:right;font-size:9px;font-weight:700;padding:2px 4px;color:#0f3460">\u00a5'+Math.round(ww).toLocaleString()+'</td></tr>';
+      rows+=tr;
+    });
+    return '<table style="border-collapse:collapse;width:100%">'+hd+rows+'</table>';
+  }
+
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+G.mo+' \u78ba\u5b9a\u30b7\u30d5\u30c8</title>');
+  win.document.write('<style>body{font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;padding:10px;color:#1a1a2e;font-size:10px;margin:0}h2{font-size:12px;margin:14px 0 4px;color:#0f3460;border-bottom:2px solid #0f3460;padding-bottom:2px}table td,table th{border:.5px solid #e2e2ef}@media print{body{padding:4px}}</style>');
+  win.document.write('</head><body>');
+  win.document.write('<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #e94560"><span style="font-size:11px;font-weight:700;color:#e94560">sonoble</span><span style="font-size:14px;font-weight:700">'+G.mo.replace('-','\u5e74')+'\u6708\u3000\u78ba\u5b9a\u30b7\u30d5\u30c8</span><span style="margin-left:auto;font-size:10px;color:#6b6b8a">'+SI().ico+' '+SI().lbl+'</span></div>');
+  win.document.write('<h2>\u2460 \u524d\u534a\uff081\u301c15\u65e5\uff09</h2>');
+  win.document.write(buildHalf(1,15));
+  win.document.write('<h2 style="margin-top:14px">\u2461 \u5f8c\u534a\uff0116\u301c'+days+'\u65e5\uff09</h2>');
+  win.document.write(buildHalf(16,days));
+  win.document.write('<div style="margin-top:12px;text-align:right;font-size:9px;color:#6b6b8a">\u51fa\u529b\u65e5: '+new Date().toLocaleDateString('ja-JP')+'</div>');
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(function(){win.print();},600);
 }
 
 /* ===== 人件費 ===== */
