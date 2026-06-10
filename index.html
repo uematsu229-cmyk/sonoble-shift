@@ -201,7 +201,7 @@ var AVC = [{bg:'#0f3460',tx:'#fff'},{bg:'#10b981',tx:'#fff'},{bg:'#e94560',tx:'#
 var ALBL = ['A','B','C','D','E','F','G','H'];
 var SDEF = '13:00';
 var LATE = 22, LRATE = 1.25;
-var ALBDEF = [{start:'17:30',end:'22:00'},{start:'18:00',end:'23:00'}];
+var ALBDEF = [{start:'17:00',end:'22:00'},{start:'18:00',end:'23:00'}];
 var STORES = [
   {key:'fumo', lbl:'フーモ',   ico:'\uD83C\uDF7D', c0:'#4f8ef7', cbg:'rgba(79,142,247,.18)'},
   {key:'tori', lbl:'鳥時々',   ico:'\uD83D\uDC14', c0:'#e8a04a', cbg:'rgba(232,160,74,.18)'},
@@ -372,7 +372,7 @@ function setupNav(isA) {
 function go(i) {
   G.ct=i; for(var j=0;j<5;j++){var t=g('na'+j); if(t){t.classList.remove('on'); if(j===i) t.classList.add('on');}}
   sNB();
-  if(i===0) rP(bIdeal()); else if(i===1) rP(bHope()); else if(i===2) rP(bConf());
+  if(i===0) {iD(G.mo); rP(bIdeal());} else if(i===1) rP(bHope()); else if(i===2) rP(bConf());
   else if(i===3) rP(bCost()); else if(i===4) rP(bCfg());
   window.scrollTo(0,0);
 }
