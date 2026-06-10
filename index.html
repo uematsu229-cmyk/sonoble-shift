@@ -231,13 +231,18 @@ function sRef(path) { return _ref(_db, 'stores/' + SK() + (path ? '/' + path : '
 function loadStore(key, cb) {
   _get(_ref(_db, 'stores/' + key)).then(function(snap) {
     var d = snap.val();
-    if (!d) {
-      d = mkD();
-      _set(_ref(_db, 'stores/' + key), d);
-    }
+    if (!d) { d = mkD(); _set(_ref(_db, 'stores/' + key), d); }
+    /* 不完全なデータを補完 */
+    if (!d.adminPw) d.adminPw = '1111';
+    if (!d.workers) { d.workers = mkD().workers; _set(_ref(_db,'stores/'+key+'/workers'), d.workers); }
+    if (!d.fixed) { d.fixed = mkD().fixed; _set(_ref(_db,'stores/'+key+'/fixed'), d.fixed); }
+    if (!d.emails) { d.emails = []; _set(_ref(_db,'stores/'+key+'/emails'), []); }
+    if (!d.ideal) d.ideal = {};
+    if (!d.shifts) d.shifts = {};
+    if (!d.confirmed) d.confirmed = {};
     SD[key] = d;
     cb(d);
-  }).catch(function(e) { alert('読み込みエラー: ' + e.message); });
+  }).catch(function(e) { alert('\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC: ' + e.message); });
 }
 
 /* 保存 */
