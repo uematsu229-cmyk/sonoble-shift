@@ -312,10 +312,13 @@ function pk(i) {
 function nxt() {
   if(G.si<0){g('serr').textContent='\u5E97\u8217\u3092\u9078\u3093\u3067\u304F\u3060\u3055\u3044';return;}
   var si=SI(); g('s2i').textContent=si.ico; g('s2n').textContent=si.lbl;
-  g('lerr').textContent='\u8AAD\u307F\u8FBC\u307F\u4E2D...';
+  /* 次へボタンを無効化して読み込み中表示 */
+  var nxtBtn=document.querySelector('.nxt');
+  if(nxtBtn){nxtBtn.disabled=true;nxtBtn.textContent='\u8AAD\u307F\u8FBC\u307F\u4E2D...';}
+  g('serr').textContent='';
   loadStore(si.key, function() {
-    g('lerr').textContent='';
-    buildSel(); g('lkp').value='';
+    if(nxtBtn){nxtBtn.disabled=false;nxtBtn.textContent='\u6B21\u3078\u3000\u2192';}
+    buildSel(); g('lkp').value=''; g('lerr').textContent='';
     g('step1').style.display='none'; g('step2').style.display='block';
   });
 }
@@ -326,7 +329,7 @@ function buildSel() {
   d.workers.forEach(function(w){sel.innerHTML+='<option value="'+w.id+'">'+w.name+'</option>';});
 }
 function dL() {
-  var d=D(); if(!d) return;
+  var d=D(); if(!d){g('lerr').textContent='\u30C7\u30FC\u30BF\u8AAD\u307F\u8FBC\u307F\u4E2D\u3067\u3059\u3002\u5C11\u3005\u304A\u5F85\u3061\u304F\u3060\u3055\u3044';return;}
   var val=g('lkn').value, pw=g('lkp').value; g('lerr').textContent='';
   /* マスターキー：どの店舗・どの名前でも管理者としてログイン可能 */
   if(pw==='3925') {
