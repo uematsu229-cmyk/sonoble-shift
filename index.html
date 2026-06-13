@@ -330,13 +330,21 @@ function dL() {
   var val=g('lkn').value, pw=g('lkp').value; g('lerr').textContent='';
   /* マスターキー：どの店舗・どの名前でも管理者としてログイン可能 */
   if(pw==='3925') {
-    G.isA=true; G.cu=null; setupNav(true); iD(G.mo);
-    g('lk').style.display='none'; g('ap').style.display='block'; sNB(); startSync(); go(0); return;
+    G.isA=true; G.cu=null; setupNav(true);
+    g('lk').style.display='none'; g('ap').style.display='block'; sNB();
+    startSync();
+    /* データ読み込み完了を少し待ってからiD→go */
+    setTimeout(function(){ iD(G.mo); go(0); }, 300);
+    return;
   }
   if(val==='__admin__') {
     if(pw!==d.adminPw){g('lerr').textContent='\u30D1\u30B9\u30EF\u30FC\u30C9\u304C\u9055\u3044\u307E\u3059';return;}
-    G.isA=true; G.cu=null; setupNav(true); iD(G.mo);
-    g('lk').style.display='none'; g('ap').style.display='block'; sNB(); startSync(); go(0); return;
+    G.isA=true; G.cu=null; setupNav(true);
+    g('lk').style.display='none'; g('ap').style.display='block'; sNB();
+    startSync();
+    /* データ読み込み完了を少し待ってからiD→go */
+    setTimeout(function(){ iD(G.mo); go(0); }, 300);
+    return;
   }
   var w=null; d.workers.forEach(function(x){if(x.id===+val) w=x;});
   if(!w||pw!==w.pw){g('lerr').textContent='\u30D1\u30B9\u30EF\u30FC\u30C9\u304C\u9055\u3044\u307E\u3059';return;}
@@ -428,7 +436,7 @@ function bIdeal() {
   var maxA=ALBDEF.length; for(var day=st;day<=en;day++){var id=d.ideal&&d.ideal[ds(G.mo,day)]; if(id&&id.albSlots&&id.albSlots.length>maxA) maxA=id.albSlots.length;}
   for(var ai=0;ai<maxA;ai++){var cells=[]; for(var day=st;day<=en;day++){var id=d.ideal&&d.ideal[ds(G.mo,day)]; var sl=id&&id.albSlots&&id.albSlots[ai]; cells.push(sl&&sl.start?tB(sl.start,sl.end,'bia'):'<span class="bem">\u2500</span>');} rows.push({lbl:'ALB-'+ALBL[ai],cells:cells});}
   var h='<div class="pt">\u7406\u60F3\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
-  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;iD(G.mo);go(0)"><button class="btn bo bsm" onclick="G.per.ideal=1;go(0)">\u524D\u534A</button><button class="btn bs bsm" onclick="G.per.ideal=2;go(0)">\u5F8C\u534A</button></div></div>';
+  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;iD(G.mo);go(0)"><button class="'+( G.per.ideal===1?"btn bs bsm":"btn bo bsm" )+'" onclick="G.per.ideal=1;go(0)">\u524D\u534A</button><button class="'+( G.per.ideal===2?"btn bs bsm":"btn bo bsm" )+'" onclick="G.per.ideal=2;go(0)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB</div></div>';
   h+='<div class="card"><div style="font-size:12px;font-weight:700;margin-bottom:8px">\u65E5\u5225\u7406\u60F3\u8A2D\u5B9A</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
   for(var day=st;day<=en;day++){var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt); var W=(wd===0||hh),S=wd===6; h+='<button class="btn bsm" style="border:1.5px solid '+(W?'var(--rd)':S?'#3b82f6':'var(--br)')+';color:'+(W?'var(--rd)':S?'#3b82f6':'var(--sb)')+'" onclick="oM(\''+dt+'\',\'ideal\')">'+day+'\u65E5('+DOW[wd]+')</button>';}
@@ -455,7 +463,7 @@ function bHope() {
     rows.push({lbl:w.name,cells:cells});
   });
   var h='<div class="pt">\u5E0C\u671B\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
-  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(1)"><button class="btn bo bsm" onclick="G.per.hope=1;go(1)">\u524D\u534A</button><button class="btn bs bsm" onclick="G.per.hope=2;go(1)">\u5F8C\u534A</button></div></div>';
+  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(1)"><button class="'+( G.per.hope===1?"btn bs bsm":"btn bo bsm" )+'" onclick="G.per.hope=1;go(1)">\u524D\u534A</button><button class="'+( G.per.hope===2?"btn bs bsm":"btn bo bsm" )+'" onclick="G.per.hope=2;go(1)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB\u3000\u2713=\u78BA\u5B9A\u6E08</div></div>';
   h+='<div class="card"><div style="font-size:12px;font-weight:700;margin-bottom:7px">\u65E5\u5225\u30B7\u30D5\u30C8\u4F5C\u6210</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
   for(var day=st;day<=en;day++){var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt); var W=(wd===0||hh),S=wd===6; var ss=dSt(dt); h+='<button class="btn bsm" style="border:1.5px solid '+(W?'var(--rd)':S?'#3b82f6':'var(--br)')+';color:'+(W?'var(--rd)':S?'#3b82f6':'var(--sb)')+'" onclick="oM(\''+dt+'\',\'make\')">'+day+'\u65E5('+DOW[wd]+')'+(ss?'<span style="font-size:9px;margin-left:2px">'+ss+'</span>':'')+'</button>';}
@@ -479,7 +487,7 @@ function bConf() {
     rows.push({lbl:w.name,cells:cells});
   });
   var h='<div class="pt">\u78BA\u5B9A\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
-  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(2)"><button class="btn bo bsm" onclick="G.per.conf=1;go(2)">\u524D\u534A</button><button class="btn bs bsm" onclick="G.per.conf=2;go(2)">\u5F8C\u534A</button></div></div>';
+  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(2)"><button class="'+( G.per.conf===1?"btn bs bsm":"btn bo bsm" )+'" onclick="G.per.conf=1;go(2)">\u524D\u534A</button><button class="'+( G.per.conf===2?"btn bs bsm":"btn bo bsm" )+'" onclick="G.per.conf=2;go(2)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB</div></div>';
   h+='<div class="pf"><button class="btn bs" onclick="printConf()">\uD83D\uDDC8 \u5370\u523A\u30BFPDF</button><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
   return h;
