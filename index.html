@@ -418,7 +418,18 @@ function iD(ym) {
       var ok=id.staffSlots.some(function(s){return s.name===f.name;});
       if(!ok) id.staffSlots.push({name:f.name,start:SDEF,end:''});
     });
-    ALBDEF.forEach(function(a,ai){if(id.albSlots.length<=ai) id.albSlots.push({start:a.start,end:a.end});});
+    /* 店舗・曜日によってデフォルトALB枠を変える */
+    var albDef = ALBDEF;
+    if(SK()==='somi') {
+      var wd2=dw(ym,day);
+      var isWe=(wd2===0||wd2===6||isH(date));
+      if(isWe) {
+        albDef=[{start:'11:00',end:'15:00'},{start:'18:00',end:'23:00'},{start:'19:00',end:'23:00'}];
+      } else {
+        albDef=[{start:'18:00',end:'23:00'},{start:'19:00',end:'23:00'}];
+      }
+    }
+    albDef.forEach(function(a,ai){if(id.albSlots.length<=ai) id.albSlots.push({start:a.start,end:a.end});});
   }
 }
 
