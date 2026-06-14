@@ -411,11 +411,14 @@ function iD(ym) {
     if(!d.ideal) d.ideal={};
     if(!d.ideal[date]) d.ideal[date]={staffSlots:[],albSlots:[],budget:0};
     var id=d.ideal[date];
+    /* FirebaseからはオブジェクトになるためArray変換 */
+    if(!id.staffSlots||!Array.isArray(id.staffSlots)) id.staffSlots=[];
+    if(!id.albSlots||!Array.isArray(id.albSlots)) id.albSlots=[];
     d.fixed.forEach(function(f){
       var ok=id.staffSlots.some(function(s){return s.name===f.name;});
       if(!ok) id.staffSlots.push({name:f.name,start:SDEF,end:''});
     });
-    ALBDEF.forEach(function(a,ai){if(!id.albSlots[ai]) id.albSlots.push({start:a.start,end:a.end});});
+    ALBDEF.forEach(function(a,ai){if(id.albSlots.length<=ai) id.albSlots.push({start:a.start,end:a.end});});
   }
 }
 
