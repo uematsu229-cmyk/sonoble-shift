@@ -416,7 +416,12 @@ function iD(ym) {
     if(!id.albSlots||!Array.isArray(id.albSlots)) id.albSlots=[];
     d.fixed.forEach(function(f){
       var ok=id.staffSlots.some(function(s){return s.name===f.name;});
-      if(!ok) id.staffSlots.push({name:f.name,start:SDEF,end:''});
+      if(!ok) {
+        var wd3=dw(ym,day);
+        var isWe2=(wd3===0||wd3===6||isH(date));
+        var defStart = (SK()==='somi'&&isWe2) ? '11:00' : SDEF;
+        id.staffSlots.push({name:f.name,start:defStart,end:''});
+      }
     });
     /* 店舗・曜日によってデフォルトALB枠を変える */
     var albDef = ALBDEF;
