@@ -256,7 +256,16 @@ function startSync() {
   if (_unsub) _unsub();
   _unsub = _onValue(_ref(_db, 'stores/' + SK()), function(snap) {
     var d = snap.val();
-    if (d) { SD[SK()] = d; refreshPage(); }
+    if (d) {
+      if (!d.ideal) d.ideal = {};
+      if (!d.shifts) d.shifts = {};
+      if (!d.confirmed) d.confirmed = {};
+      if (!d.workers) d.workers = [];
+      if (!d.fixed) d.fixed = [];
+      SD[SK()] = d;
+      iD(G.mo);
+      refreshPage();
+    }
   });
 }
 function stopSync() { if (_unsub) { _unsub(); _unsub = null; } }
@@ -439,10 +448,12 @@ function bIdeal() {
   var maxA=ALBDEF.length; for(var day=st;day<=en;day++){var id=d.ideal&&d.ideal[ds(G.mo,day)]; if(id&&id.albSlots&&id.albSlots.length>maxA) maxA=id.albSlots.length;}
   for(var ai=0;ai<maxA;ai++){var cells=[]; for(var day=st;day<=en;day++){var id=d.ideal&&d.ideal[ds(G.mo,day)]; var sl=id&&id.albSlots&&id.albSlots[ai]; cells.push(sl&&sl.start?tB(sl.start,sl.end,'bia'):'<span class="bem">\u2500</span>');} rows.push({lbl:'ALB-'+ALBL[ai],cells:cells});}
   var h='<div class="pt">\u7406\u60F3\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
-  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;iD(G.mo);go(0)"><button class="btn bsm" style="background:'+(G.per.ideal===1?'#0f3460':'transparent')+';color:'+(G.per.ideal===1?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460" onclick="G.per.ideal=1;go(0)">\u524D\u534A</button><button class="btn bsm" style="background:'+(G.per.ideal===2?'#0f3460':'transparent')+';color:'+(G.per.ideal===2?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460" onclick="G.per.ideal=2;go(0)">\u5F8C\u534A</button></div></div>';
+  var b1s='background:'+(G.per.ideal===1?'#0f3460':'transparent')+';color:'+(G.per.ideal===1?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460';
+  var b2s='background:'+(G.per.ideal===2?'#0f3460':'transparent')+';color:'+(G.per.ideal===2?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460';
+  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;iD(G.mo);go(0)"><button class="btn bsm" style="'+b1s+'" onclick="G.per.ideal=1;go(0)">\u524D\u534A</button><button class="btn bsm" style="'+b2s+'" onclick="G.per.ideal=2;go(0)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB</div></div>';
   h+='<div class="card"><div style="font-size:12px;font-weight:700;margin-bottom:8px">\u65E5\u5225\u7406\u60F3\u8A2D\u5B9A</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
-  for(var day=st;day<=en;day++){var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt); var W=(wd===0||hh),S=wd===6; h+='<button class="btn bsm" style="border:1.5px solid '+(W?'var(--rd)':S?'#3b82f6':'var(--br)')+';color:'+(W?'var(--rd)':S?'#3b82f6':'var(--sb)')+'" onclick="oM(\''+dt+'\',\'ideal\')">'+day+'\u65E5('+DOW[wd]+')</button>';}
+  for(var day=st;day<=en;day++){var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt); var W=(wd===0||hh),S=wd===6; var bdc=W?'#e94560':S?'#3b82f6':'#e2e2ef'; var btc=W?'#e94560':S?'#3b82f6':'#6b6b8a'; h+='<button class="btn bsm" style="border:1.5px solid '+bdc+';color:'+btc+'" onclick="oM(\''+dt+'\',\'ideal\')">'+day+'\u65E5('+DOW[wd]+')</button>';}
   h+='</div></div><div class="pf"><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
   return h;
 }
@@ -466,10 +477,12 @@ function bHope() {
     rows.push({lbl:w.name,cells:cells});
   });
   var h='<div class="pt">\u5E0C\u671B\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
-  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(1)"><button class="btn bsm" style="background:'+(G.per.hope===1?'#0f3460':'transparent')+';color:'+(G.per.hope===1?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460" onclick="G.per.hope=1;go(1)">\u524D\u534A</button><button class="btn bsm" style="background:'+(G.per.hope===2?'#0f3460':'transparent')+';color:'+(G.per.hope===2?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460" onclick="G.per.hope=2;go(1)">\u5F8C\u534A</button></div></div>';
+  var h1s='background:'+(G.per.hope===1?'#0f3460':'transparent')+';color:'+(G.per.hope===1?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460';
+  var h2s='background:'+(G.per.hope===2?'#0f3460':'transparent')+';color:'+(G.per.hope===2?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460';
+  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(1)"><button class="btn bsm" style="'+h1s+'" onclick="G.per.hope=1;go(1)">\u524D\u534A</button><button class="btn bsm" style="'+h2s+'" onclick="G.per.hope=2;go(1)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB\u3000\u2713=\u78BA\u5B9A\u6E08</div></div>';
   h+='<div class="card"><div style="font-size:12px;font-weight:700;margin-bottom:7px">\u65E5\u5225\u30B7\u30D5\u30C8\u4F5C\u6210</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
-  for(var day=st;day<=en;day++){var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt); var W=(wd===0||hh),S=wd===6; var ss=dSt(dt); h+='<button class="btn bsm" style="border:1.5px solid '+(W?'var(--rd)':S?'#3b82f6':'var(--br)')+';color:'+(W?'var(--rd)':S?'#3b82f6':'var(--sb)')+'" onclick="oM(\''+dt+'\',\'make\')">'+day+'\u65E5('+DOW[wd]+')'+(ss?'<span style="font-size:9px;margin-left:2px">'+ss+'</span>':'')+'</button>';}
+  for(var day=st;day<=en;day++){var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt); var W=(wd===0||hh),S=wd===6; var ss=dSt(dt); var bdc2=W?'#e94560':S?'#3b82f6':'#e2e2ef'; var btc2=W?'#e94560':S?'#3b82f6':'#6b6b8a'; h+='<button class="btn bsm" style="border:1.5px solid '+bdc2+';color:'+btc2+'" onclick="oM(\''+dt+'\',\'make\')">'+day+'\u65E5('+DOW[wd]+')'+(ss?'<span style="font-size:9px;margin-left:2px">'+ss+'</span>':'')+'</button>';}
   h+='</div></div><div class="pf"><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
   return h;
 }
@@ -490,7 +503,9 @@ function bConf() {
     rows.push({lbl:w.name,cells:cells});
   });
   var h='<div class="pt">\u78BA\u5B9A\u30B7\u30D5\u30C8</div><div class="ps2">'+SI().ico+' '+SI().lbl+'</div>';
-  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(2)"><button class="btn bsm" style="background:'+(G.per.conf===1?'#0f3460':'transparent')+';color:'+(G.per.conf===1?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460" onclick="G.per.conf=1;go(2)">\u524D\u534A</button><button class="btn bsm" style="background:'+(G.per.conf===2?'#0f3460':'transparent')+';color:'+(G.per.conf===2?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460" onclick="G.per.conf=2;go(2)">\u5F8C\u534A</button></div></div>';
+  var c1s='background:'+(G.per.conf===1?'#0f3460':'transparent')+';color:'+(G.per.conf===1?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460';
+  var c2s='background:'+(G.per.conf===2?'#0f3460':'transparent')+';color:'+(G.per.conf===2?'#fff':'#6b6b8a')+';border:1.5px solid #0f3460';
+  h+='<div class="card"><div style="display:flex;gap:7px;align-items:center"><input type="month" value="'+G.mo+'" style="flex:1;margin:0" onchange="G.mo=this.value;go(2)"><button class="btn bsm" style="'+c1s+'" onclick="G.per.conf=1;go(2)">\u524D\u534A</button><button class="btn bsm" style="'+c2s+'" onclick="G.per.conf=2;go(2)">\u5F8C\u534A</button></div></div>';
   h+='<div class="card" style="padding:10px"><div class="cw"><table class="calt">'+bCal(rows,st,en)+'</table></div><div style="font-size:10px;color:var(--sb);margin-top:5px">\u2190 \u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB</div></div>';
   h+='<div class="pf"><button class="btn bs" onclick="printConf()">\uD83D\uDDC8 \u5370\u523A\u30BFPDF</button><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
   return h;
@@ -713,7 +728,7 @@ function bIM(dt){
   h+='<div style="font-size:11px;font-weight:700;color:var(--bl);margin-bottom:6px">\uD83D\uDC54 \u793E\u54E1\u30B7\u30D5\u30C8</div>';
   d.fixed.forEach(function(f,fi){
     var sl=id.staffSlots.filter(function(s){return s.name===f.name;})[0];var ck=!!sl;
-    h+='<div style="padding:8px;border-radius:9px;background:'+(ck?'#eef0f8':'#f8f8fc')+';border:1.5px solid '+(ck?'#c7ceeb':'var(--br)')+';margin-bottom:6px">';
+    h+='<div style="padding:8px;border-radius:9px;background:'+(ck?'#eef0f8':'#f8f8fc')+';border:1.5px solid '+(ck?'#c7ceeb':'#e2e2ef')+';margin-bottom:6px">';
     h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><label class="chk"><input type="checkbox" id="sc'+fi+'" '+(ck?'checked':'')+' onchange="tIS(\''+dt+'\','+fi+',this.checked)"><span class="chkb"></span></label><span style="font-size:12px;font-weight:700">'+f.name+'</span></div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><label class="lbl" style="font-size:10px">\u958B\u59CB</label><div style="display:flex;align-items:center;gap:3px">'+mkH('ish'+fi,sl&&sl.start,'sIS(\''+dt+'\','+fi+',\'start\',gT(\'ish'+fi+'\',\'ism'+fi+'\'))')+' <span style="font-size:10px;color:var(--sb)">:</span> '+mkM('ism'+fi,sl&&sl.start,'sIS(\''+dt+'\','+fi+',\'start\',gT(\'ish'+fi+'\',\'ism'+fi+'\'))')+'</div></div><div><label class="lbl" style="font-size:10px">\u7D42\u4E86</label><div style="display:flex;align-items:center;gap:3px">'+mkH('ieh'+fi,sl&&sl.end,'sIS(\''+dt+'\','+fi+',\'end\',gT(\'ieh'+fi+'\',\'iem'+fi+'\'))')+' <span style="font-size:10px;color:var(--sb)">:</span> '+mkM('iem'+fi,sl&&sl.end,'sIS(\''+dt+'\','+fi+',\'end\',gT(\'ieh'+fi+'\',\'iem'+fi+'\'))')+'</div></div></div></div>';
   });
@@ -739,10 +754,10 @@ function bMM(dt){
   hp.forEach(function(p2){
     var ic=conf.some(function(x){return x.type==='worker'&&x.wid===p2.wid;});
     var idx=d.workers.findIndex(function(x){return x.id===p2.wid;}),col=aC(idx);
-    h+='<div onclick="'+(p2.ng?'':'tC(\''+dt+'\','+p2.wid+')')+'" style="display:flex;align-items:center;gap:7px;padding:7px;border-radius:8px;margin-bottom:4px;cursor:'+(p2.ng?'default':'pointer')+';border:1.5px solid '+(ic?'#10b981':p2.ng?'#fca5a5':'var(--br)')+';background:'+(ic?'#d1fae5':p2.ng?'#fff5f5':'#f8f8fc')+'"><div class="av" style="width:26px;height:26px;font-size:10px;background:'+col.bg+';color:'+col.tx+'">'+p2.name[0]+'</div><div style="flex:1"><div style="font-size:11px;font-weight:700">'+p2.name+'</div>'+(p2.start&&p2.end?'<div style="font-size:10px;color:var(--sb)">'+fTS(p2.start)+'\u301C'+fTS(p2.end)+'</div>':'')+'</div>'+(p2.ng?'<span style="font-size:9px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:3px">\u4E0D\u53EF</span>':'')+(ic?'<span style="color:#10b981;font-size:15px">\u2713</span>':'')+'</div>';
+    h+='<div onclick="'+(p2.ng?'':'tC(\''+dt+'\','+p2.wid+')')+'" style="display:flex;align-items:center;gap:7px;padding:7px;border-radius:8px;margin-bottom:4px;cursor:'+(p2.ng?'default':'pointer')+';border:1.5px solid '+(ic?'#10b981':p2.ng?'#fca5a5':'#e2e2ef')+';background:'+(ic?'#d1fae5':p2.ng?'#fff5f5':'#f8f8fc')+'"><div class="av" style="width:26px;height:26px;font-size:10px;background:'+col.bg+';color:'+col.tx+'">'+p2.name[0]+'</div><div style="flex:1"><div style="font-size:11px;font-weight:700">'+p2.name+'</div>'+(p2.start&&p2.end?'<div style="font-size:10px;color:var(--sb)">'+fTS(p2.start)+'\u301C'+fTS(p2.end)+'</div>':'')+'</div>'+(p2.ng?'<span style="font-size:9px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:3px">\u4E0D\u53EF</span>':'')+(ic?'<span style="color:#10b981;font-size:15px">\u2713</span>':'')+'</div>';
   });
   h+='<div class="hdiv"></div><div style="font-size:11px;font-weight:700;color:var(--bl);margin-bottom:5px">\uD83D\uDC54 \u793E\u54E1\u3092\u78BA\u5B9A</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">';
-  d.fixed.forEach(function(f){var al=conf.some(function(x){return x.type==='staff'&&x.name===f.name;});h+='<button class="btn bxs" onclick="tSt(\''+dt+'\',\''+f.name+'\')" style="display:flex;align-items:center;gap:4px;background:'+(al?'#1e3a5f':'transparent')+';border:1.5px solid #c7ceeb;color:'+(al?'#93c5fd':'var(--bl)')+'"><span style="font-size:13px;line-height:1">'+(al?'\u2713':'')+'</span><span>'+f.name.split(' ')[0]+'</span></button>';});
+  d.fixed.forEach(function(f){var al=conf.some(function(x){return x.type==='staff'&&x.name===f.name;});h+='<button class="btn bxs" onclick="tSt(\''+dt+'\',\''+f.name+'\')" style="display:flex;align-items:center;gap:4px;background:'+(al?'#1e3a5f':'transparent')+';border:1.5px solid #c7ceeb;color:'+(al?'#93c5fd':'#0f3460')+'"><span style="font-size:13px;line-height:1">'+(al?'\u2713':'')+'</span><span>'+f.name.split(' ')[0]+'</span></button>';});
   h+='</div><div class="hdiv"></div><div style="font-size:11px;font-weight:700;color:var(--gr);margin-bottom:5px">\u2705 \u78BA\u5B9A\u30B7\u30D5\u30C8</div>';
   var sc=conf.filter(function(x){return x.type==='staff';}),wc=conf.filter(function(x){return x.type==='worker';});
   if(!sc.length&&!wc.length) h+='<div style="font-size:11px;color:var(--sb);padding:6px;background:#f8f8fc;border-radius:6px;margin-bottom:6px">\u672A\u78BA\u5B9A</div>';
