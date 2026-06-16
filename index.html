@@ -209,7 +209,7 @@ var STORES = [
 ];
 
 /* ===== 状態 ===== */
-var G = {si:-1, isA:false, cu:null, mo:'2026-06', per:{ideal:2,hope:2,conf:2,my:2}, sip:2, ct:0, wct:0, bc:3200000};
+var G = {si:-1, isA:false, cu:null, mo:'2026-06', per:{ideal:2,hope:2,conf:2,my:2}, sip:2, ct:0, wct:0, bc:3200000, hopeConfirmed:false, wmo:'2026-06'};
 var WEI = -1;
 var SD = {};   /* メモリキャッシュ */
 var _unsub = null;
@@ -365,6 +365,7 @@ function dL() {
 }
 function sNB() { var si=SI(); if(si) g('nb').textContent=si.ico+' '+si.lbl; }
 function logout() {
+  G.hopeConfirmed=false; G.wmo='';
   stopSync(); G.cu=null; G.isA=false; G.si=-1;
   g('lkp').value=''; g('lerr').textContent=''; g('nb').textContent='';
   for(var j=0;j<3;j++){var sb=g('sb'+j),ck=g('ck'+j); sb.style.border='2px solid rgba(255,255,255,.12)'; sb.style.background='rgba(255,255,255,.06)'; sb.style.boxShadow='none'; ck.style.background='transparent'; ck.style.borderColor='rgba(255,255,255,.2)'; ck.style.color='transparent';}
@@ -655,10 +656,37 @@ function bWHome(){
 function chPw(){var d=D();if(!d)return;var cur=g('cpw').value,np=g('npw').value,np2=g('npw2').value,m=g('pwm');if(!G.cu||cur!==G.cu.pw){m.textContent='\u73FE\u5728\u306EPW\u304C\u9055\u3044\u307E\u3059';m.className='al adr';m.style.display='block';return;}if(!/^\d{4}$/.test(np)){m.textContent='4\u6841\u306E\u6570\u5B57\u3067\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044';m.className='al adr';m.style.display='block';return;}if(np!==np2){m.textContent='\u78BA\u8A8D\u304C\u4E00\u81F4\u3057\u307E\u305B\u3093';m.className='al adr';m.style.display='block';return;}var w=d.workers.filter(function(x){return x.id===G.cu.id;})[0];if(w){w.pw=np;G.cu.pw=np;fbSet('workers',d.workers);}m.textContent='\u5909\u66F4\u3057\u307E\u3057\u305F\uFF01';m.className='al asg';m.style.display='block';}
 
 /* ===== 希望提出 ===== */
+function bWHopeSelect(){
+  var si=SI();
+  var cur=G.wmo.split('-'); var cy=+cur[0],cm=+cur[1];
+  var moOpts='';
+  for(var delta=-1;delta<=2;delta++){
+    var nm=cm+delta; var ny=cy;
+    if(nm<1){nm+=12;ny--;}if(nm>12){nm-=12;ny++;}
+    var key=ny+'-'+(nm<10?'0':'')+nm;
+    moOpts+='<option value="'+key+'" '+(G.wmo===key?'selected':'')+'>'+key.replace('-','\u5E74')+'\u6708</option>';
+  }
+  var h='<div class="pt">\u5E0C\u671B\u30B7\u30D5\u30C8\u63D0\u51FA</div><div class="ps2">'+si.ico+' '+si.lbl+'</div>';
+  h+='<div class="card"><div class="ct"><div class="cdt"></div>\u63D0\u51FA\u3059\u308B\u6708\u3068\u671F\u9593\u3092\u9078\u3093\u3067\u304F\u3060\u3055\u3044</div>';
+  h+='<label class="lbl">\u6708\u3092\u9078\u629E</label><select id="wmo-sel" style="margin-bottom:16px;font-size:16px" onchange="G.wmo=this.value">'+moOpts+'</select>';
+  h+='<label class="lbl">\u671F\u9593\u3092\u9078\u629E</label><div class="tg" style="margin-bottom:16px"><button id="wsel-btn1" class="btn bsm" style="padding:10px" onclick="G.sip=1;gw(1)">\u524D\u534A\uFF081\uFF5E15\u65E5\uFF09</button><button id="wsel-btn2" class="btn bsm" style="padding:10px" onclick="G.sip=2;gw(1)">\u5F8C\u534A\uFF0116\uFF5E\u672B\u65E5\uFF09</button></div>';
+  h+='<button class="btn bp" style="font-size:15px;padding:14px" onclick="G.mo=G.wmo;G.hopeConfirmed=true;gw(1)">\u2705 \u3053\u306E\u671F\u9593\u3067\u5165\u529B\u3059\u308B</button></div>';
+  h+='<div class="pf"><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
+  setTimeout(function(){
+    var b1=document.getElementById('wsel-btn1'),b2=document.getElementById('wsel-btn2');
+    if(b1){b1.style.background=G.sip===1?'#0f3460':'transparent';b1.style.color=G.sip===1?'#fff':'#6b6b8a';b1.style.border='1.5px solid #0f3460';}
+    if(b2){b2.style.background=G.sip===2?'#0f3460':'transparent';b2.style.color=G.sip===2?'#fff':'#6b6b8a';b2.style.border='1.5px solid #0f3460';}
+  },0);
+  return h;
+}
 function bWHope(){
   var d=D();if(!d)return'';var si=SI();
+  if(!G.hopeConfirmed){if(!G.wmo)G.wmo=G.mo;return bWHopeSelect();}
   var h='<div class="pt">\u5E0C\u671B\u30B7\u30D5\u30C8\u63D0\u51FA</div><div class="ps2">'+si.ico+' '+si.lbl+'</div>';
-  h+='<div class="card"><div class="tg"><button onclick="G.sip=1;gw(1)" class="'+(G.sip===1?'on':'')+'}">\u524D\u534A\uFF081\u301C15\u65E5\uFF09</button><button onclick="G.sip=2;gw(1)" class="'+(G.sip===2?'on':'')+'}">\u5F8C\u534A\uFF0116\u301C\u672B\u65E5\uFF09</button></div>';
+  var perLabel=G.sip===1?'\u524D\u534A\uFF081\u301C15\u65E5\uFF09':'\u5F8C\u534A\uFF0116\u301C'+dim(G.mo)+'\u65E5\uFF09';
+  h+='<div class="card" style="background:#eff6ff;border:1.5px solid #bfdbfe"><div style="font-size:11px;color:#1e40af;margin-bottom:4px">\u63D0\u51FA\u671F\u9593</div><div style="font-size:18px;font-weight:700;color:#1e40af">'+G.mo.replace('-','\u5E74')+'\u6708\u3000'+perLabel+'</div><button class="btn bo bsm" style="margin-top:8px;border-color:#bfdbfe;color:#1e40af" onclick="G.hopeConfirmed=false;G.wmo=G.mo;gw(1)">\u2190 \u671F\u9593\u3092\u5909\u3048\u308B</button></div>';
+  h+='<div class="card"><div class="tg"><button id="hope-btn1" class="btn bsm" onclick="G.sip=1;gw(1)">\u524D\u534A</button><button id="hope-btn2" class="btn bsm" onclick="G.sip=2;gw(1)">\u5F8C\u534A</button></div>';
+  setTimeout(function(){var b1=document.getElementById('hope-btn1'),b2=document.getElementById('hope-btn2');if(b1){b1.style.background=G.sip===1?'#0f3460':'transparent';b1.style.color=G.sip===1?'#fff':'#6b6b8a';b1.style.border='1.5px solid #0f3460';}if(b2){b2.style.background=G.sip===2?'#0f3460':'transparent';b2.style.color=G.sip===2?'#fff':'#6b6b8a';b2.style.border='1.5px solid #0f3460';}},0);
   var days=dim(G.mo),st=G.sip===1?1:16,en=G.sip===1?15:days,uid=G.cu&&G.cu.id;
   var saved=(d.shifts&&d.shifts[uid]&&d.shifts[uid][G.sip])||{};
   for(var day=st;day<=en;day++){
