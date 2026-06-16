@@ -540,7 +540,7 @@ function printConf() {
       var col=(wd===0||hh)?'#e94560':wd===6?'#93c5fd':'#fff';
       hd+='<th style="background:#1a1a2e;color:'+col+';padding:3px 1px;font-size:9px;min-width:28px;text-align:center"><div>'+day+'</div><div>'+DOW[wd]+'</div></th>';
     }
-    hd+='<th style="background:#1a1a2e;color:#fff;padding:3px 4px;font-size:9px">\u6642\u9593</th><th style="background:#1a1a2e;color:#fff;padding:3px 4px;font-size:9px">\u7d66\u6599</th></tr>';
+    hd+='</tr>';
     var rows='';
     d.fixed.forEach(function(f){
       var tr='<tr><td style="background:#eef0f8;color:#0f3460;font-weight:700;padding:3px 5px;font-size:9px;white-space:nowrap">'+f.name+'</td>';
@@ -550,14 +550,11 @@ function printConf() {
         var c=d.confirmed&&d.confirmed[dt]&&d.confirmed[dt].filter(function(x){return x.type==='staff'&&x.name===f.name;})[0];
         tr+='<td style="background:'+bg+';text-align:center;padding:2px 1px;font-size:8px">'+(c?'<span style="background:#1e3a5f;color:#93c5fd;border-radius:2px;padding:1px 2px">'+fTS(c.start||SDEF)+'</span>':'<span style="color:#ccc">\u2500</span>')+'</td>';
       }
-      var daily=Math.round(f.monthly/days);
-      tr+='<td style="text-align:center;font-size:8px;color:#6b6b8a">\u65e5\u5272<br>\u00a5'+daily.toLocaleString()+'</td><td style="text-align:right;font-size:9px;font-weight:700;padding:2px 4px">\u00a5'+f.monthly.toLocaleString()+'</td></tr>';
+      tr+='</tr>';
       rows+=tr;
     });
-    rows+='<tr><td colspan="'+(en-st+3)+'" style="height:2px;background:#1a1a2e;padding:0"></td></tr>';
+    rows+='<tr><td colspan="'+(en-st+2)+'" style="height:2px;background:#1a1a2e;padding:0"></td></tr>';
     d.workers.forEach(function(w){
-      var wh=0,ww=0;
-      for(var day=st;day<=en;day++){var dt2=ds(G.mo,day);if(d.confirmed&&d.confirmed[dt2])d.confirmed[dt2].forEach(function(c){if(c.type==='worker'&&c.wid===w.id){wh+=hrs(c.start,c.end);ww+=wage(c.start,c.end,w.hourly);}});}
       var tr='<tr><td style="padding:3px 5px;font-size:9px;white-space:nowrap;font-weight:700">'+w.name+'</td>';
       for(var day=st;day<=en;day++){
         var dt=ds(G.mo,day),wd=dw(G.mo,day),hh=isH(dt);
@@ -567,7 +564,7 @@ function printConf() {
         if(c&&c.start&&c.end)cell='<span style="background:#059669;color:#fff;border-radius:2px;padding:1px 2px;font-size:7px;line-height:1.3">'+fTS(c.start)+'<br>\u301c'+fTS(c.end)+'</span>';
         tr+='<td style="background:'+bg+';text-align:center;padding:2px 1px;font-size:8px">'+cell+'</td>';
       }
-      tr+='<td style="text-align:center;font-size:8px;color:#0f3460;font-weight:700">'+wh.toFixed(1)+'h</td><td style="text-align:right;font-size:9px;font-weight:700;padding:2px 4px;color:#0f3460">\u00a5'+Math.round(ww).toLocaleString()+'</td></tr>';
+      tr+='</tr>';
       rows+=tr;
     });
     return '<table style="border-collapse:collapse;width:100%">'+hd+rows+'</table>';
