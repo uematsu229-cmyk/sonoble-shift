@@ -264,7 +264,11 @@ function startSync() {
       if (!d.fixed) d.fixed = [];
       SD[SK()] = d;
       iD(G.mo);
-      refreshPage();
+      /* モーダルが開いている間は再描画しない */
+      var modal=g('modal');
+      if(!modal||!modal.classList.contains('on')) {
+        refreshPage();
+      }
     }
   });
 }
@@ -781,7 +785,13 @@ function bIM(dt){
   h+='<div class="hdiv"></div><button class="btn bs" onclick="svIM(\''+dt+'\')">\uD83D\uDCBE \u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B</button>';
   return h;
 }
-function svIM(dt){var d=D();if(!d)return;fbSet('ideal/'+dt,d.ideal[dt]);cM();}
+function svIM(dt){
+  var d=D();if(!d)return;
+  fbSet('ideal/'+dt, d.ideal[dt]);
+  cM();
+  /* 保存後にページを再描画 */
+  setTimeout(function(){go(G.ct);},300);
+}
 
 /* 確定モーダル */
 function bMM(dt){
@@ -807,7 +817,13 @@ function bMM(dt){
   h+='<div class="hdiv"></div><button class="btn bs" onclick="svMM(\''+dt+'\')">\uD83D\uDCBE \u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B</button>';
   return h;
 }
-function svMM(dt){var d=D();if(!d)return;if(!d.confirmed)d.confirmed={};fbSet('confirmed/'+dt,d.confirmed[dt]||[]);cM();}
+function svMM(dt){
+  var d=D();if(!d)return;
+  if(!d.confirmed)d.confirmed={};
+  fbSet('confirmed/'+dt, d.confirmed[dt]||[]);
+  cM();
+  setTimeout(function(){go(G.ct);},300);
+}
 
 /* ===== モーダル操作 ===== */
 function dSt(dt){var d=D();if(!d)return null;var id=d.ideal&&d.ideal[dt],cf=(d.confirmed&&d.confirmed[dt])||[];if(!id||((!id.staffSlots||!id.staffSlots.length)&&(!id.albSlots||!id.albSlots.length)))return null;var ms=0,tm=0;if(id.staffSlots)id.staffSlots.forEach(function(sl){if(!cf.some(function(x){return x.type==='staff'&&x.name===sl.name;}))ms++;});if(id.albSlots)id.albSlots.forEach(function(sl){var wc=cf.filter(function(x){return x.type==='worker';});if(!wc.length){ms++;return;}if(sl.start&&sl.end&&!wc.some(function(w){return w.start&&w.end&&pT(w.start)<=pT(sl.start)&&pT(w.end)>=pT(sl.end);}))tm++;});if(ms>0)return'\u274C';if(tm>0)return'\u25B3';return'\u25CB';}
