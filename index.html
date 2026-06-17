@@ -253,24 +253,8 @@ function fbSet(path, val) {
 
 /* リアルタイム同期開始 */
 function startSync() {
-  if (_unsub) _unsub();
-  _unsub = _onValue(_ref(_db, 'stores/' + SK()), function(snap) {
-    var d = snap.val();
-    if (d) {
-      /* モーダル表示中または保存直後はスキップ */
-      var modal=g('modal');
-      if(modal&&modal.classList.contains('on')) return;
-      if(G._saving) return;
-      if (!d.ideal) d.ideal = {};
-      if (!d.shifts) d.shifts = {};
-      if (!d.confirmed) d.confirmed = {};
-      if (!d.workers) d.workers = [];
-      if (!d.fixed) d.fixed = [];
-      SD[SK()] = d;
-      iD(G.mo);
-      refreshPage();
-    }
-  });
+  /* リアルタイム同期は使わず1回読み込みのみ */
+  if (_unsub) { _unsub(); _unsub = null; }
 }
 function stopSync() { if (_unsub) { _unsub(); _unsub = null; } }
 
@@ -414,32 +398,29 @@ function iD(ym) {
   for(var day=1;day<=days;day++) {
     var date=ds(ym,day);
     if(!d.ideal) d.ideal={};
-    if(!d.ideal[date]) d.ideal[date]={staffSlots:[],albSlots:[],budget:0};
+    /* 既存データがある日付はArray変換のみ行い、デフォルト追加はしない */
+    if(d.ideal[date]) {
+      var id=d.ideal[date];
+      if(!id.staffSlots||!Array.isArray(id.staffSlots)) id.staffSlots=id.staffSlots?Object.values(id.staffSlots):[];
+      if(!id.albSlots||!Array.isArray(id.albSlots)) id.albSlots=id.albSlots?Object.values(id.albSlots):[];
+      continue;
+    }
+    /* 新規日付のみデフォルトを設定 */
+    d.ideal[date]={staffSlots:[],albSlots:[],budget:0};
     var id=d.ideal[date];
-    /* FirebaseからはオブジェクトになるためArray変換 */
-    if(!id.staffSlots||!Array.isArray(id.staffSlots)) id.staffSlots=[];
-    if(!id.albSlots||!Array.isArray(id.albSlots)) id.albSlots=[];
     d.fixed.forEach(function(f){
-      var ok=id.staffSlots.some(function(s){return s.name===f.name;});
-      if(!ok) {
-        var wd3=dw(ym,day);
-        var isWe2=(wd3===0||wd3===6||isH(date));
-        var defStart = (SK()==='somi'&&isWe2) ? '11:00' : SDEF;
-        id.staffSlots.push({name:f.name,start:defStart,end:''});
-      }
+      var wd3=dw(ym,day);
+      var isWe2=(wd3===0||wd3===6||isH(date));
+      var defStart=(SK()==='somi'&&isWe2)?'11:00':SDEF;
+      id.staffSlots.push({name:f.name,start:defStart,end:''});
     });
-    /* 店舗・曜日によってデフォルトALB枠を変える */
-    var albDef = ALBDEF;
+    var albDef=ALBDEF;
     if(SK()==='somi') {
       var wd2=dw(ym,day);
       var isWe=(wd2===0||wd2===6||isH(date));
-      if(isWe) {
-        albDef=[{start:'11:00',end:'15:00'},{start:'18:00',end:'23:00'},{start:'19:00',end:'23:00'}];
-      } else {
-        albDef=[{start:'18:00',end:'23:00'},{start:'19:00',end:'23:00'}];
-      }
+      albDef=isWe?[{start:'11:00',end:'15:00'},{start:'18:00',end:'23:00'},{start:'19:00',end:'23:00'}]:[{start:'18:00',end:'23:00'},{start:'19:00',end:'23:00'}];
     }
-    albDef.forEach(function(a,ai){if(id.albSlots.length<=ai) id.albSlots.push({start:a.start,end:a.end});});
+    albDef.forEach(function(a){id.albSlots.push({start:a.start,end:a.end});});
   }
 }
 
@@ -792,12 +773,11 @@ function svIM(dt){
     if(id.staffSlots&&!Array.isArray(id.staffSlots)) id.staffSlots=Object.values(id.staffSlots);
     if(id.albSlots&&!Array.isArray(id.albSlots)) id.albSlots=Object.values(id.albSlots);
   }
-  /* 保存中フラグを立てる（startSyncの上書きを2秒間ブロック）*/
-  G._saving=true;
-  setTimeout(function(){G._saving=false;},2000);
-  fbSet('ideal/'+dt, d.ideal[dt]);
-  cM();
-  go(G.ct);
+  _set(sRef('ideal/'+dt), d.ideal[dt]).then(function(){
+    showToast();
+    cM();
+    go(G.ct);
+  }).catch(function(e){alert('保存エラー: '+e.message);});
 }
 
 /* 確定モーダル */
@@ -827,11 +807,11 @@ function bMM(dt){
 function svMM(dt){
   var d=D();if(!d)return;
   if(!d.confirmed)d.confirmed={};
-  G._saving=true;
-  setTimeout(function(){G._saving=false;},2000);
-  fbSet('confirmed/'+dt, d.confirmed[dt]||[]);
-  cM();
-  go(G.ct);
+  _set(sRef('confirmed/'+dt), d.confirmed[dt]||[]).then(function(){
+    showToast();
+    cM();
+    go(G.ct);
+  }).catch(function(e){alert('保存エラー: '+e.message);});
 }
 
 /* ===== モーダル操作 ===== */
