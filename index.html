@@ -209,7 +209,7 @@ var STORES = [
 ];
 
 /* ===== 状態 ===== */
-var G = {si:-1, isA:false, cu:null, mo:'2026-06', per:{ideal:2,hope:2,conf:2,my:2}, sip:2, ct:0, wct:0, bc:3200000, hopeConfirmed:false, wmo:'2026-06'};
+var G = {si:-1, isA:false, cu:null, mo:'2026-06', per:{ideal:2,hope:2,conf:2,my:2}, sip:2, ct:0, wct:0, bc:3200000, hopeConfirmed:false, wmo:'2026-06', _saving:false};
 var WEI = -1;
 var SD = {};   /* メモリキャッシュ */
 var _unsub = null;
@@ -257,9 +257,10 @@ function startSync() {
   _unsub = _onValue(_ref(_db, 'stores/' + SK()), function(snap) {
     var d = snap.val();
     if (d) {
-      /* モーダルが開いている間はSD上書きも再描画もしない */
+      /* モーダル表示中または保存直後はスキップ */
       var modal=g('modal');
       if(modal&&modal.classList.contains('on')) return;
+      if(G._saving) return;
       if (!d.ideal) d.ideal = {};
       if (!d.shifts) d.shifts = {};
       if (!d.confirmed) d.confirmed = {};
@@ -756,7 +757,7 @@ function oM(dt,mode){
   g('mbdy').innerHTML=mode==='ideal'?bIM(dt):bMM(dt);
   g('modal').classList.add('on');
 }
-function cM(){g('modal').classList.remove('on'); if(G.isA){if(G.ct===0)go(0);else if(G.ct===1)go(1);else if(G.ct===2)go(2);}}
+function cM(){g('modal').classList.remove('on');}
 
 /* 理想モーダル */
 function bIM(dt){
@@ -788,13 +789,15 @@ function svIM(dt){
   var d=D();if(!d)return;
   var id=d.ideal[dt];
   if(id){
-    /* 配列に変換してから保存 */
     if(id.staffSlots&&!Array.isArray(id.staffSlots)) id.staffSlots=Object.values(id.staffSlots);
     if(id.albSlots&&!Array.isArray(id.albSlots)) id.albSlots=Object.values(id.albSlots);
   }
+  /* 保存中フラグを立てる（startSyncの上書きを2秒間ブロック）*/
+  G._saving=true;
+  setTimeout(function(){G._saving=false;},2000);
   fbSet('ideal/'+dt, d.ideal[dt]);
   cM();
-  setTimeout(function(){go(G.ct);},500);
+  go(G.ct);
 }
 
 /* 確定モーダル */
@@ -824,9 +827,11 @@ function bMM(dt){
 function svMM(dt){
   var d=D();if(!d)return;
   if(!d.confirmed)d.confirmed={};
+  G._saving=true;
+  setTimeout(function(){G._saving=false;},2000);
   fbSet('confirmed/'+dt, d.confirmed[dt]||[]);
   cM();
-  setTimeout(function(){go(G.ct);},300);
+  go(G.ct);
 }
 
 /* ===== モーダル操作 ===== */
