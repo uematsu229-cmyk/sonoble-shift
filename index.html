@@ -592,7 +592,9 @@ function calcLab(d) {
 }
 function bCost() {
   var d=D(); if(!d) return '';
+  var sk=SK(), simV=G.sim&&G.sim[sk]?G.sim[sk]:{ss:0,ts:25};
   var lab=calcLab(d),bgt=d.budget||G.bc||3200000;
+  var simSS=simV.ss||bgt, simTS=simV.ts||25;
   var rt=bgt>0?((lab.tot/bgt)*100).toFixed(1):0,rtN=+rt;
   var rc=rtN<25?'#10b981':rtN<30?'#f59e0b':'#ef4444'; var bw=Math.min(rtN,50)*2;
   var days=dim(G.mo),wR='',gr=0;
