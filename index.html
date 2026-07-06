@@ -586,8 +586,30 @@ function printConf() {
 /* ===== 人件費 ===== */
 function calcLab(d) {
   var days=dim(G.mo),fl=0;
-  d.workers.forEach(function(w){for(var day=1;day<=days;day++){var dt=ds(G.mo,day); if(d.confirmed&&d.confirmed[dt]) d.confirmed[dt].forEach(function(c){if(c.type==='worker'&&c.wid===w.id) fl+=wage(c.start,c.end,w.hourly);});}});
-  var fx=0; d.fixed.forEach(function(f){fx+=f.monthly;});
+  d.workers.forEach(function(w){
+    for(var day=1;day<=days;day++){
+      var dt=ds(G.mo,day);
+      if(d.confirmed&&d.confirmed[dt]) d.confirmed[dt].forEach(function(c){
+        if(c.type==='worker'&&c.wid===w.id) fl+=wage(c.start,c.end,w.hourly);
+      });
+    }
+  });
+  /* 固定人件費：日給×確定出勤日数（日給=月額÷(月の総日数-7)） */
+  var fx=0;
+  d.fixed.forEach(function(f){
+    var workDays=days-7; /* 月の実働日数 */
+    var dailyWage=f.monthly/workDays;
+    /* 確定シフトに出勤している日数をカウント */
+    var confirmedDays=0;
+    for(var day=1;day<=days;day++){
+      var dt=ds(G.mo,day);
+      if(d.confirmed&&d.confirmed[dt]){
+        var found=d.confirmed[dt].some(function(c){return c.type==='staff'&&c.name===f.name;});
+        if(found) confirmedDays++;
+      }
+    }
+    fx+=dailyWage*confirmedDays;
+  });
   return {fl:fl,fx:fx,tot:fl+fx};
 }
 function bCost() {
@@ -612,7 +634,14 @@ function bCost() {
   h+='<div class="card"><div class="ct3"><div class="cdt"></div>\u6708\u9593\u58F2\u4E0A\u4E88\u7B97</div><label class="lbl">\u58F2\u4E0A\u4E88\u7B97\uFF08\u5186\uFF09</label><input type="number" id="bi" value="'+bgt+'" min="100000" max="100000000" step="100000" oninput="G.bc=+this.value||3200000;sBgt();onBC()"><div style="font-size:11px;color:var(--sb);margin-top:4px">\u76EE\u6A1925%\u9054\u6210\u306B\u5FC5\u8981\u306A\u58F2\u4E0A\uFF1A<b style="color:var(--bl)">\u00A5'+Math.round(lab.tot/0.25).toLocaleString()+'</b></div></div>';
   h+='<div class="card"><div class="ct3"><div class="cdt"></div>\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3 <span style="font-size:10px;font-weight:400;color:var(--sb)">\u78BA\u5B9A\u4EBA\u4EF6\u8CBB\u306B\u5BFE\u3057\u3066</span></div><label class="lbl">\u58F2\u4E0A\u4E88\u7B97\uFF1A<b id="sbl" style="color:var(--bl)">\u00A5'+simSS.toLocaleString()+'</b></label><div class="slw"><input type="range" id="ss" min="500000" max="20000000" step="100000" value="'+simSS+'" oninput="onSS(this.value)"></div><div class="sr2" style="margin-top:4px"><div class="bx lt"><div class="lbx">\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u4EBA\u4EF6\u8CBB\u7387</div><div class="vl" style="color:#7c3aed" id="simr">'+(simSS>0?((lab.tot/simSS)*100).toFixed(1):0)+'%</div></div><div class="bx lt"><div class="lbx">\u76EE\u671025%\u306B\u5FC5\u8981\u306A\u58F2\u4E0A</div><div class="vl" style="font-size:12px">\u00A5'+Math.round(lab.tot/0.25).toLocaleString()+'</div></div></div><label class="lbl" style="margin-top:8px">\u76EE\u6A19\u4EBA\u4EF6\u8CBB\u7387\uFF1A<b id="trl" style="color:#7c3aed">'+simTS+'%</b></label><div class="slw"><input type="range" id="ts2" min="15" max="40" step="1" value="'+simTS+'" oninput="onTS(this.value)"></div><div class="bx lt" style="margin-top:4px"><div class="lbx">\u76EE\u6A19\u9054\u6210\u306B\u5FC5\u8981\u306A\u58F2\u4E0A</div><div class="vl" style="color:var(--bl)" id="tn2">\u00A5'+Math.round(lab.tot/(simTS/100)).toLocaleString()+'</div></div></div>';
   h+='<div class="card"><div class="ct3"><div class="cdt"></div>\u56FA\u5B9A\u4EBA\u4EF6\u8CBB\uFF08\u793E\u54E1\uFF09</div>';
-  d.fixed.forEach(function(s){var daily=Math.round(s.monthly/days); h+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)"><span style="font-weight:700;font-size:12px">'+s.name+'</span><div style="text-align:right"><div style="font-size:12px;font-weight:700">\u00A5'+s.monthly.toLocaleString()+'/\u6708</div><div style="font-size:10px;color:var(--sb)">\u65E5\u5272 \u00A5'+daily.toLocaleString()+'</div></div></div>';});
+  d.fixed.forEach(function(s){
+    var workDays=days-7;
+    var daily=Math.round(s.monthly/workDays);
+    var confirmedDays=0;
+    for(var day=1;day<=days;day++){var dt=ds(G.mo,day);if(d.confirmed&&d.confirmed[dt]){var found=d.confirmed[dt].some(function(c){return c.type==='staff'&&c.name===s.name;});if(found)confirmedDays++;}}
+    var fx2=Math.round(daily*confirmedDays);
+    h+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)"><span style="font-weight:700;font-size:12px">'+s.name+'</span><div style="text-align:right"><div style="font-size:12px;font-weight:700">\u00A5'+fx2.toLocaleString()+'</div><div style="font-size:10px;color:var(--sb)">\u51FA\u52E4'+confirmedDays+'\u65E5 \u00D7 \u65E5\u5272\u00A5'+daily.toLocaleString()+'</div></div></div>';
+  });
   h+='<div style="text-align:right;padding:7px 0;font-size:12px;font-weight:700;color:var(--bl)">\u56FA\u5B9A\u5408\u8A08: \u00A5'+lab.fx.toLocaleString()+'</div></div>';
   h+='<div class="card"><div class="ct3"><div class="cdt"></div>\u30A2\u30EB\u30D0\u30A4\u30C8\u5225\u96C6\u8A08 <span style="font-size:10px;font-weight:400;color:var(--rd)">\uFF0822\u6642\u4EE51.25\u500D\uFF09</span></div><table class="sm"><tr><th>\u540D\u524D</th><th>\u6642\u9593</th><th>\u6642\u7D66</th><th>\u7D66\u6599</th></tr>'+wR+'<tr style="background:var(--ny);color:#fff"><td colspan="3" style="font-weight:700">\u5408\u8A08</td><td style="color:var(--rd);font-weight:700">\u00A5'+Math.round(gr).toLocaleString()+'</td></tr></table></div>';
   h+='<div class="pf"><button class="btn bo" onclick="logout()">\uD83D\uDEAA \u30ED\u30B0\u30A2\u30A6\u30C8</button></div>';
